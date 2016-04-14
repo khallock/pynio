@@ -133,7 +133,7 @@ def _intp(ar, sltup):
     if not isinstance(sltup, tuple):
         sltup = (sltup,)
     if len(sltup) != ar.ndim:
-        raise ValueError, 'length of selection tuple does not match array dimension'
+        raise ValueError('length of selection tuple does not match array dimension')
 
     # determine first axis which requires interpolation
     axis = None
@@ -303,7 +303,7 @@ def _rindex2(ar, val, axis=0, ep=0.5, clip=True, round=False):
     # determine selection tuples for the remaining dimensions
     rj_shape = list(rj.shape)
     rtup = []
-    for i in xrange(rj.ndim):
+    for i in range(rj.ndim):
         idx = N.arange(rj.shape[i])
         idx_shape = N.ones(rj.ndim)
         idx_shape[i] = rj.shape[i]
@@ -312,7 +312,7 @@ def _rindex2(ar, val, axis=0, ep=0.5, clip=True, round=False):
     rtup[axis] = rj
 
     if val_ndim == 0:
-        for i in xrange(rj.ndim):
+        for i in range(rj.ndim):
             r_shape = list(rtup[i].shape)
             if i != axis: del(r_shape[axis])
             rtup[i].shape = r_shape
@@ -350,7 +350,7 @@ def _rline(edges, delta=None, ns=None):
     rj = N.zeros((n.sum()+1,edges.shape[1]), dtype=N.double)
     idx = N.zeros(nlines+1, dtype=N.int_)
     idx[1:] = n.cumsum()
-    for i in xrange(nlines):
+    for i in range(nlines):
         t = N.linspace(0,1,n[i]+1)
         t.shape = (t.shape[0],1)
         rj[idx[i]:idx[i+1]+1,:] = edges[i,:] + b[i,:]*t

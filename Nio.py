@@ -126,12 +126,12 @@ def pyniopath_ncarg():
             if not __formats__['grib2']:
                 return ""
             else:
-                print "No path found to PyNIO/ncarg data directory and no usable NCARG installation found"
+                print("No path found to PyNIO/ncarg data directory and no usable NCARG installation found")
                 sys.exit()
         else:
             pynio_ncarg = os.path.join(ncarg_dir,"lib","ncarg")
 
-    print pynio_ncarg
+    print(pynio_ncarg)
     return pynio_ncarg
 
 #
@@ -153,13 +153,13 @@ del pyniopath_ncarg
 # code
 
 
-from nio import _Nio
+from .nio import _Nio
 import numpy as np
 from numpy import ma
-from coordsel import get_variable, inp2csel, inp2isel, inp2xsel, idxsel2xsel, \
+from .coordsel import get_variable, inp2csel, inp2isel, inp2xsel, idxsel2xsel, \
                      xSelect, crdSelect, idxSelect 
-import coordsel as cs
-import niodict  as nd
+from . import coordsel as cs
+from . import niodict  as nd
 
 _Nio.option_defaults['UseAxisAttribute'] = False
 _Nio.option_defaults['MaskedArrayMode'] = 'MaskedIfFillAtt'
@@ -200,7 +200,7 @@ class _Proxy(object):
         super(_Proxy, self).__init__()
         super(_Proxy,self).__setattr__('_obj', obj)
         super(_Proxy,self).__setattr__('attributes',{})
-        for key in obj.__dict__.keys():
+        for key in list(obj.__dict__.keys()):
             if key != 'attributes':
                 super(_Proxy,self).__setattr__(key,obj.__dict__[key])
             self.attributes[key] = obj.__dict__[key]
@@ -213,7 +213,7 @@ class _Proxy(object):
 
     def __setattr__(self, attrib, value):
         if attrib in _builtins:
-            raise AttributeError, "Attempt to modify read only attribute"
+            raise AttributeError("Attempt to modify read only attribute")
         elif attrib in _localatts:
             super(_Proxy,self).__setattr__(attrib,value)
         else:
@@ -222,7 +222,7 @@ class _Proxy(object):
 
     def __delattr__(self, attrib):
         if attrib in _localatts or attrib in _builtins:
-            raise AttributeError, "Attempt to delete read only attribute"
+            raise AttributeError("Attempt to delete read only attribute")
         else:
             delattr(self._obj,attrib)
             del(self.attributes[attrib])
@@ -254,7 +254,7 @@ def _proxy(obj, *specials, **regulars):
             setattr(cls, name, _make_binder(unbound_method))
         # also cache it for the future
         _known_proxy_classes[key] = cls
-        for key in regulars.keys():
+        for key in list(regulars.keys()):
             setattr(cls, key, regulars[key])
     # instantiate and return the needed proxy
     instance = cls(obj)
@@ -302,20 +302,20 @@ def _fill_value_to_masked(self, a):
 
     elif self.file.ma_mode == 'maskediffillattandvalue':
         # MaskedIfFillAttAndValue -- return a masked array only if there are actual fill values
-        if self.__dict__.has_key('_FillValue'):
+        if '_FillValue' in self.__dict__:
             if a.__contains__(self.__dict__['_FillValue']):
                 a = ma.masked_where(a == self.__dict__['_FillValue'],a,copy=0)
                 a.set_fill_value(self.__dict__['_FillValue'])
-        elif self.__dict__.has_key('missing_value'):
+        elif 'missing_value' in self.__dict__:
             if a.__contains__(self.__dict__['missing_value']):
                 a = ma.masked_where(a == self.__dict__['missing_value'],a,copy=0)
                 a.set_fill_value(self.__dict__['missing_value'])
     else: 
         # Handles MaskedIfFillAtt and MaskedAlways
-        if self.__dict__.has_key('_FillValue'):
+        if '_FillValue' in self.__dict__:
             a = ma.masked_where(a == self.__dict__['_FillValue'],a,copy=0)
             a.set_fill_value(self.__dict__['_FillValue'])
-        elif self.__dict__.has_key('missing_value'):
+        elif 'missing_value' in self.__dict__:
             a = ma.masked_where(a == self.__dict__['missing_value'],a,copy=0)
             a.set_fill_value(self.__dict__['missing_value'])
         elif self.file.ma_mode == 'maskedalways':
@@ -371,10 +371,10 @@ def _masked_to_fill_value(self,value):
         # If there is an existing fill value in the file, make it conform to that type (??)
         # Otherwise use the type of the numpy array value
         #
-        if self.__dict__.has_key('_FillValue'):
+        if '_FillValue' in self.__dict__:
             fval = self.__dict__['_FillValue']
             fill_value = np.array(fval,dtype=fval.dtype)
-        elif self.__dict__.has_key('missing_value'):
+        elif 'missing_value' in self.__dict__:
             fval = self.__dict__['missing_value']
             fill_value = np.array(fval,dtype=fval.dtype)
         elif _is_new_ma:
@@ -552,17 +552,17 @@ def _get_masked_array_mode(options,option_defaults):
     optvals = [ 'maskednever', 'maskediffillatt', 'maskedalways', 'maskediffillattandvalue', 'maskedexplicit' ]
 
     if options is not None:
-        for key in options.__dict__.keys():
+        for key in list(options.__dict__.keys()):
             lkey = key.lower()
             if not lkey == 'maskedarraymode':
                 continue
             val = options.__dict__[key]
             lval = val.lower()
             if optvals.count(lval) == 0:
-                raise ValueError, 'Invalid value for MaskArrayMode option'
+                raise ValueError('Invalid value for MaskArrayMode option')
             return  lval
 
-    if option_defaults.has_key('MaskedArrayMode'):
+    if 'MaskedArrayMode' in option_defaults:
         return option_defaults['MaskedArrayMode'].lower()
     else:
         return 'maskediffillatt'
@@ -570,11 +570,11 @@ def _get_masked_array_mode(options,option_defaults):
 def _get_axis_att(options,option_defaults):
     ''' Get a value for the UseAxisAttribute option '''
     if options == None:
-        if option_defaults.has_key('UseAxisAttribute'):
+        if 'UseAxisAttribute' in option_defaults:
             return option_defaults['UseAxisAttribute']
         else:
             return False
-    for key in options.__dict__.keys():
+    for key in list(options.__dict__.keys()):
         lkey = key.lower()
         if not lkey == 'useaxisattribute':
             continue
@@ -593,7 +593,7 @@ def _get_option_value(options,option_defaults,name):
 
     if options is not None:
         lname = name.lower()
-        for key in options.__dict__.keys():
+        for key in list(options.__dict__.keys()):
             lkey = key.lower()
             if not lkey == lname:
                 continue
@@ -602,7 +602,7 @@ def _get_option_value(options,option_defaults,name):
                 return val
             return None
 
-    if option_defaults.has_key(name):
+    if name in option_defaults:
         return option_defaults[name]
     else:
         return None
@@ -639,8 +639,8 @@ def set_option(self,option,value):
         loption = option.lower()
     else:
         loption = option
-    if not valid_opts.has_key(loption):
-        raise KeyError, "Option %s invalid or cannot be set on open NioFile" % (option,)
+    if loption not in valid_opts:
+        raise KeyError("Option %s invalid or cannot be set on open NioFile" % (option,))
         
     if hasattr(value,'lower'):
         lvalue = value.lower()
@@ -768,7 +768,7 @@ Returns an NioFile object.
     variable_proxies = nd.nioDict()
     variable_proxies.path = '/'
     variable_proxies.topdict = None
-    for var in file.variables.keys():
+    for var in list(file.variables.keys()):
         # print var, ": ", sys.getrefcount(file.variables[var])
         vp  = _proxy(file.variables[var],'str','len',
                      __setitem__=__setitem__,__getitem__=__getitem__,get_value=get_value,assign_value=assign_value)
@@ -795,7 +795,7 @@ Returns an NioFile object.
     group_proxies = nd.nioDict()
     group_proxies.path = '/'
     group_proxies.topdict = None
-    for group in file.groups.keys():
+    for group in list(file.groups.keys()):
         # print group, ": ", sys.getrefcount(file.groups[group])
         gp = _proxy(file.groups[group], 'str')
         gp.file = weakref.proxy(file.groups[group])
@@ -807,7 +807,7 @@ Returns an NioFile object.
         v_proxy_refs.path = file.groups[group].path
         v_proxy_refs.topdict = weakref.proxy(file_proxy.variables)
         #v_proxy_refs.topdict = file_proxy.variables
-        for var in file.groups[group].variables.keys():
+        for var in list(file.groups[group].variables.keys()):
             #print file.groups[group].variables[var].path
             vp = file_proxy.variables[file.groups[group].variables[var].path]
             #print vp is file_proxy.variables[file.groups[group].variables[var].path]
@@ -821,7 +821,7 @@ Returns an NioFile object.
     file_proxy.groups = group_proxies
     # all the groups need proxies before we can do this
 
-    for group in file.groups.keys():
+    for group in list(file.groups.keys()):
         g = file.groups[group]
         gp = file_proxy.groups[group]
         sl = group.rfind('/')
@@ -837,7 +837,7 @@ Returns an NioFile object.
         g_proxy_refs.path = g.path
         g_proxy_refs.topdict = weakref.proxy(file_proxy.groups)
         #g_proxy_refs.topdict = file_proxy.groups
-        for grp in g.groups.keys():
+        for grp in list(g.groups.keys()):
             grp_obj = g.groups[grp]
             #print grp_obj.path
             gproxy = file_proxy.groups[grp_obj.path]
@@ -868,7 +868,7 @@ def _create_coordinates_attriibute(file,var):
     
     cnames = None
     cdict = {}
-    if var.attributes.has_key('coordinates'):
+    if 'coordinates' in var.attributes:
         s = var.attributes['coordinates'].replace(',',' ')
         cnames = s.split()
         #print var.attributes['coordinates']
@@ -876,7 +876,7 @@ def _create_coordinates_attriibute(file,var):
     dlist = []
     if not cnames is None:
         for c in cnames:
-            if c in parent.variables.keys():
+            if c in list(parent.variables.keys()):
                 cdict[c] = parent.variables[c]
                 if dlist.count(cdict[c].dimensions) == 0:
                     dlist.append(cdict[c].dimensions)
@@ -893,8 +893,8 @@ def _create_coordinates_attriibute(file,var):
                 
     for d in dims:
         while not parent is None:
-            if d in parent.dimensions.keys():
-                for v in parent.variables.values():
+            if d in list(parent.dimensions.keys()):
+                for v in list(parent.variables.values()):
                     if d == v.name and v.rank == 1:
                         coords[d] = v
                         break
@@ -942,7 +942,7 @@ if os.access(filepath,os.R_OK):
     var_proxy = _proxy(file.variables['t'],'str','len',
                        __setitem__=__setitem__,__getitem__=__getitem__,get_value=get_value,assign_value=assign_value)
 
-    for cls in _known_proxy_classes.values():
+    for cls in list(_known_proxy_classes.values()):
         if isinstance(file_proxy,cls):
             NioFile = cls
         elif isinstance(var_proxy,cls):

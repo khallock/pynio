@@ -18,6 +18,7 @@ extern "C" {
 
 #include <stdio.h>
 #include "Python.h"
+#include "pyconfig.h"
 
 /* NIOFile object */
 
@@ -115,6 +116,16 @@ typedef enum
     NioVariable_GetSize_NUM,
     PyNIO_API_pointers /* Total number of C API pointers */
 } NioFileGroupVariableNUM;
+
+/* For backward compatibility only. Obsolete, do not use. */
+#ifdef HAVE_PROTOTYPES
+#define Py_PROTO(x) x
+#else
+#define Py_PROTO(x) ()
+#endif
+#ifndef Py_FPROTO
+#define Py_FPROTO(x) Py_PROTO(x)
+#endif
 
 /* Type definitions */
 /* Open a NIO file (i.e. create a new file object) */
@@ -239,10 +250,10 @@ typedef enum
 /* Write string. Returns -1 if there was an error.  */
 #define NioVariable_WriteString_RET int
 #define NioVariable_WriteString_PROTO \
-	  Py_PROTO((NioVariableObject *var, PyStringObject *value))
+	  Py_PROTO((NioVariableObject *var, PyBytesObject *value))
 
 /* Read string  */
-#define NioVariable_ReadAsString_RET PyStringObject *
+#define NioVariable_ReadAsString_RET PyBytesObject *
 #define NioVariable_ReadAsString_PROTO \
 	  Py_PROTO((NioVariableObject *var))
 
@@ -251,8 +262,8 @@ typedef enum
 #ifdef _NIO_MODULE
 
 /* Type object declarations */
-staticforward PyTypeObject NioFile_Type;
-staticforward PyTypeObject NioVariable_Type;
+static PyTypeObject NioFile_Type;
+static PyTypeObject NioVariable_Type;
 
 /* Type check macros */
 #define NioFile_Check(op) ((op)->ob_type == &NioFile_Type)
